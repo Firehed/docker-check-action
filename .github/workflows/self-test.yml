@@ -14,8 +14,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - run: docker images
-
       - name: Make mountable directory
         run: mkdir coverage
 
@@ -23,6 +21,6 @@ jobs:
         with:
           name: 'Run `ls` from docker-check action'
           token: ${{ secrets.GITHUB_TOKEN }}
-          image: alpine:latest
+          image: alpine:3.13
           flags: --volume ${{ github.workspace }}/coverage:/coverage
           command: ls

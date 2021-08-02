@@ -24,7 +24,7 @@ jobs:
           image: alpine:3.13
           options:
             --volume ${{ github.workspace }}/coverage:/coverage
-            --volume ${{ github.workspace }}/examples/write:write
+            --volume ${{ github.workspace }}/examples/write:/write
           command: ./write
 
       - name: Check docker step ran

@@ -7,17 +7,13 @@ import { getFullCommitHash } from './helpers'
 async function run(): Promise<void> {
   const checkId = await createCheck()
   core.debug(`Check ID ${checkId}`)
+
   try {
-    core.debug('before build')
-    await build()
-    core.debug('after build')
+    await runCheckDockerCommand()
     await updateCheck(checkId, 'success')
-    core.debug('after update check success')
   } catch (error) {
-    core.debug('error before update')
-    // convert to follow up
+    core.debug('Docker command threw - updating to failure')
     await updateCheck(checkId, 'failure')
-    core.debug('after update check fail')
     core.setFailed(error.message)
   }
 }
@@ -31,8 +27,9 @@ async function createCheck(): Promise<number> {
   const createParams = {
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
-    name,
     head_sha: getFullCommitHash(),
+    name,
+    status: 'in_progress',
   }
   const check = await ok.rest.checks.create(createParams)
   return check.data.id
@@ -59,16 +56,42 @@ async function updateCheck(checkId: number, conclusion: Conclusion): Promise<voi
     check_run_id: checkId,
     conclusion,
     status: 'completed',
+    output: {
+      title: 'Title',
+      summary: 'Summary *one* **two**',
+      text: 'Text *one* **two**',
+      // annotations
+      // images
+    },
   }
   await ok.rest.checks.update(updateParams)
 }
 
-async function build() {
+async function runCheckDockerCommand(): Promise<string> {
   // Docker run --rm {options} {image} {command}
   const image = core.getInput('image')
   const command = core.getInput('command')
   const options = core.getInput('options')
-  await exec.exec(`docker run --rm ${options} ${image} ${command}`)
+
+  let stdout = ''
+  let stderr = ''
+
+  const execOptions = {
+    listeners: {
+      stderr: (data: Buffer) => {
+        stderr += data.toString()
+      },
+      stdout: (data: Buffer) => {
+        stdout += data.toString()
+      },
+    }
+  }
+
+  const exitCode = await exec.exec(`docker run --rm ${options} ${image} ${command}`, [], execOptions)
+  stderr // quiet tsc
+  exitCode // quiet tsc
+
+  return stdout
 }
 
 run()

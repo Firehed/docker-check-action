@@ -19,8 +19,11 @@ jobs:
 
       - uses: ./
         with:
-          name: 'Run `ls` from docker-check action'
+          name: 'Write into mounted directory with this action'
           token: ${{ secrets.GITHUB_TOKEN }}
           image: alpine:3.13
           flags: --volume ${{ github.workspace }}/coverage:/coverage
-          command: ls
+          command: echo "world" > "/coverage/hello.txt"
+
+      - name: Check docker step ran
+        run: ls coverage; cat coverage/hello.txt

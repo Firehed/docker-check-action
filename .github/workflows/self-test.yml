@@ -17,7 +17,7 @@ jobs:
       - name: Make mountable directory
         run: mkdir coverage
 
-      - uses: ./docker-check
+      - uses: ./
         with:
           name: 'Run `ls` from docker-check action'
           token: ${{ secrets.GITHUB_TOKEN }}

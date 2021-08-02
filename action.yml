@@ -13,8 +13,8 @@ inputs:
   image:
     description: Docker image to run
     required: true
-  flags:
-    description: Extra flags to pass to `docker run`
+  options:
+    description: Extra options to pass to `docker run`
     required: false
 
 runs:

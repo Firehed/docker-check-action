@@ -22,8 +22,10 @@ jobs:
           name: 'Write into mounted directory with this action'
           token: ${{ secrets.GITHUB_TOKEN }}
           image: alpine:3.13
-          flags: --volume ${{ github.workspace }}/coverage:/coverage
+          options: --volume ${{ github.workspace }}/coverage:/coverage
           command: echo "world" > "/coverage/hello.txt"
 
       - name: Check docker step ran
-        run: ls coverage; cat coverage/hello.txt
+        run: |
+          ls coverage
+          cat coverage/hello.txt

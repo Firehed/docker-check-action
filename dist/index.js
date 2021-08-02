@@ -7663,12 +7663,11 @@ async function updateCheck(checkId, conclusion) {
     await ok.rest.checks.update(updateParams);
 }
 async function build() {
-    // Docker run --rm {flags} {image} {command}
+    // Docker run --rm {options} {image} {command}
     const image = core.getInput('image');
     const command = core.getInput('command');
-    // const flags = core.getInput('flags').split(' ').map(flag => flag.trim())
-    const flags = core.getInput('flags');
-    await exec.exec(`docker run --rm ${flags} ${image} ${command}`);
+    const options = core.getInput('options');
+    await exec.exec(`docker run --rm ${options} ${image} ${command}`);
 }
 run();
 

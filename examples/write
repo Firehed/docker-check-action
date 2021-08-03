@@ -1,2 +1,3 @@
 #!/bin/sh
 echo "world" > "coverage/hello.txt"
+ls -la

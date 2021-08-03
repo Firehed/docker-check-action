@@ -7619,14 +7619,10 @@ function getFullCommitHash() {
 async function run() {
     const checkId = await createCheck();
     core.debug(`Check ID ${checkId}`);
-    try {
-        await runCheckDockerCommand();
-        await updateCheck(checkId, 'success');
-    }
-    catch (error) {
-        core.debug('Docker command threw - updating to failure');
-        await updateCheck(checkId, 'failure');
-        core.setFailed(error.message);
+    const result = await runCheckDockerCommand();
+    await updateCheck(checkId, result);
+    if (result.exitCode > 0) {
+        core.setFailed('Docker check command exited non-zero. See check for details.');
     }
 }
 async function createCheck() {
@@ -7644,7 +7640,8 @@ async function createCheck() {
     const check = await ok.rest.checks.create(createParams);
     return check.data.id;
 }
-async function updateCheck(checkId, conclusion) {
+async function updateCheck(checkId, result) {
+    const conclusion = result.exitCode > 0 ? 'failure' : 'success';
     // https://docs.github.com/en/rest/reference/checks#update-a-check-run
     core.debug(`Updating check ${checkId} to ${conclusion}`);
     const token = core.getInput('token');
@@ -7657,8 +7654,8 @@ async function updateCheck(checkId, conclusion) {
         status: 'completed',
         output: {
             title: 'Title',
-            summary: 'Summary *one* **two**',
-            text: 'Text *one* **two**',
+            summary: result.stdout,
+            text: result.stderr,
             // annotations
             // images
         },
@@ -7673,6 +7670,7 @@ async function runCheckDockerCommand() {
     let stdout = '';
     let stderr = '';
     const execOptions = {
+        ignoreReturnCode: true,
         listeners: {
             stderr: (data) => {
                 stderr += data.toString();
@@ -7683,9 +7681,7 @@ async function runCheckDockerCommand() {
         }
     };
     const exitCode = await exec.exec(`docker run --rm ${options} ${image} ${command}`, [], execOptions);
-    stderr; // quiet tsc
-    exitCode; // quiet tsc
-    return stdout;
+    return { stdout, stderr, exitCode };
 }
 run();
 

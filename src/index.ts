@@ -4,17 +4,22 @@ import * as github from '@actions/github'
 
 import { getFullCommitHash } from './helpers'
 
+interface ExecResult {
+  stdout: string
+  stderr: string
+  exitCode: number
+}
+
 async function run(): Promise<void> {
   const checkId = await createCheck()
   core.debug(`Check ID ${checkId}`)
 
-  try {
-    await runCheckDockerCommand()
-    await updateCheck(checkId, 'success')
-  } catch (error) {
-    core.debug('Docker command threw - updating to failure')
-    await updateCheck(checkId, 'failure')
-    core.setFailed(error.message)
+  const result = await runCheckDockerCommand()
+
+  await updateCheck(checkId, result)
+
+  if (result.exitCode > 0) {
+    core.setFailed('Docker check command exited non-zero. See check for details.')
   }
 }
 
@@ -45,7 +50,10 @@ type Conclusion =
   | 'stale'
   | 'timed_out'
 
-async function updateCheck(checkId: number, conclusion: Conclusion): Promise<void> {
+async function updateCheck(checkId: number, result: ExecResult): Promise<void> {
+
+  const conclusion: Conclusion = result.exitCode > 0 ? 'failure' : 'success'
+
   // https://docs.github.com/en/rest/reference/checks#update-a-check-run
   core.debug(`Updating check ${checkId} to ${conclusion}`)
   const token = core.getInput('token')
@@ -58,8 +66,8 @@ async function updateCheck(checkId: number, conclusion: Conclusion): Promise<voi
     status: 'completed',
     output: {
       title: 'Title',
-      summary: 'Summary *one* **two**',
-      text: 'Text *one* **two**',
+      summary: result.stdout,
+      text: result.stderr,
       // annotations
       // images
     },
@@ -67,7 +75,7 @@ async function updateCheck(checkId: number, conclusion: Conclusion): Promise<voi
   await ok.rest.checks.update(updateParams)
 }
 
-async function runCheckDockerCommand(): Promise<string> {
+async function runCheckDockerCommand(): Promise<ExecResult> {
   // Docker run --rm {options} {image} {command}
   const image = core.getInput('image')
   const command = core.getInput('command')
@@ -77,6 +85,7 @@ async function runCheckDockerCommand(): Promise<string> {
   let stderr = ''
 
   const execOptions = {
+    ignoreReturnCode: true, // Will do manual error handling
     listeners: {
       stderr: (data: Buffer) => {
         stderr += data.toString()
@@ -88,10 +97,8 @@ async function runCheckDockerCommand(): Promise<string> {
   }
 
   const exitCode = await exec.exec(`docker run --rm ${options} ${image} ${command}`, [], execOptions)
-  stderr // quiet tsc
-  exitCode // quiet tsc
 
-  return stdout
+  return { stdout, stderr, exitCode }
 }
 
 run()

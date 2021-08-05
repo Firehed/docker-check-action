@@ -7650,15 +7650,11 @@ async function updateCheck(checkId, result) {
         ? `Failed with exit code ${result.exitCode}`
         : 'Succeeded';
     const summary = ''; // Reserve for future
-    const text = "# Command output"
-        + "\n\n"
-        + "## stdout"
-        + "\n\n"
-        + '```' + result.stdout + '```'
-        + "\n\n"
-        + "## stderr"
-        + "\n\n"
-        + '```' + result.stderr + '```';
+    const text = "# Command output\n\n"
+        + "## stdout\n\n"
+        + '```' + `\n${result.stdout}\n` + '```'
+        + "## stderr\n\n"
+        + '```' + `\n${result.stderr}\n` + '```';
     const updateParams = {
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,

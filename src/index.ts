@@ -64,15 +64,11 @@ async function updateCheck(checkId: number, result: ExecResult): Promise<void> {
     : 'Succeeded'
 
   const summary = ''// Reserve for future
-  const text = "# Command output"
-   + "\n\n"
-   + "## stdout"
-   + "\n\n"
-   + '```' + result.stdout + '```'
-   + "\n\n"
-   + "## stderr"
-   + "\n\n"
-   + '```' + result.stderr + '```'
+  const text = "# Command output\n\n"
+   + "## stdout\n\n"
+   + '```' + `\n${result.stdout}\n` + '```'
+   + "## stderr\n\n"
+   + '```' + `\n${result.stderr}\n` + '```'
 
   const updateParams = {
     owner: github.context.repo.owner,

@@ -58,6 +58,22 @@ async function updateCheck(checkId: number, result: ExecResult): Promise<void> {
   core.debug(`Updating check ${checkId} to ${conclusion}`)
   const token = core.getInput('token')
   const ok = github.getOctokit(token)
+
+  const title = result.exitCode > 0
+    ? `Failed with exit code ${result.exitCode}`
+    : 'Succeeded'
+
+  const summary = undefined // Reserve for future
+  const text = "# Command output"
+   + "\n\n"
+   + "## stdout"
+   + "\n\n"
+   + '```' + result.stdout + '```'
+   + "\n\n"
+   + "## stderr"
+   + "\n\n"
+   + '```' + result.stderr + '```'
+
   const updateParams = {
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
@@ -65,9 +81,9 @@ async function updateCheck(checkId: number, result: ExecResult): Promise<void> {
     conclusion,
     status: 'completed',
     output: {
-      title: 'Title',
-      summary: result.stdout,
-      text: result.stderr,
+      title,
+      summary,
+      text,
       // annotations
       // images
     },

@@ -8,7 +8,7 @@ The main use-case is pairing with the above `docker-multistage-build` to perform
 ### Inputs
 
 | Input | Required | Description |
-|---|---|---|---|
+|---|---|---|
 | `name` | **yes** | Check Name |
 | `token` | **yes** | `GITHUB_TOKEN`. Normally, you will set this to `${{ secrets.GITHUB_TOKEN }}` |
 | `image` | **yes** | The image to run |

@@ -27,13 +27,13 @@ jobs:
             --volume ${{ github.workspace }}/examples/write:/write
           command: ./write
 
-      - uses: ./
-        continue-on-error: true
-        with:
-          name: 'Force fail'
-          token: ${{ secrets.GITHUB_TOKEN }}
-          image: alpine:3.13
-          command: non-existing-command
+      # - uses: ./
+      #   continue-on-error: true
+      #   with:
+      #     name: 'Force fail'
+      #     token: ${{ secrets.GITHUB_TOKEN }}
+      #     image: alpine:3.13
+      #     command: non-existing-command
 
       - name: Check docker step ran
         run: |

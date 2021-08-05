@@ -17,6 +17,10 @@ inputs:
     description: Extra options to pass to `docker run`
     required: false
 
+branding:
+  color: green
+  icon: check-square
+
 runs:
   using: node12
   main: dist/index.js

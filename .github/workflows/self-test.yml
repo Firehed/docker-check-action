@@ -31,7 +31,7 @@ jobs:
       - uses: ./
         name: Overload stdout
         with:
-          name: Overload stdout
+          name: Truncate output
           token: ${{ secrets.GITHUB_TOKEN }}
           image: alpine:3.13
           options:

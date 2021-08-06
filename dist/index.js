@@ -7662,7 +7662,7 @@ async function updateCheck(checkId, result) {
     const title = result.exitCode > 0
         ? `Failed with exit code ${result.exitCode}`
         : 'Succeeded';
-    let summary = ''; // Reserve for future
+    let summary = '';
     let text = "# Command output"
         + "\n\n## stdout"
         + "\n```" + `\n${result.stdout}\n` + '```'

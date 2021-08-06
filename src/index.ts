@@ -79,7 +79,7 @@ async function updateCheck(checkId: number, result: ExecResult): Promise<void> {
     ? `Failed with exit code ${result.exitCode}`
     : 'Succeeded'
 
-  const summary = ''// Reserve for future
+  let summary = ''// Reserve for future
   let text = "# Command output"
    + "\n\n## stdout"
    + "\n```" + `\n${result.stdout}\n` + '```'
@@ -87,9 +87,9 @@ async function updateCheck(checkId: number, result: ExecResult): Promise<void> {
    + "\n```" + `\n${result.stderr}\n` + '```'
 
   if (text.length > 65535) {
-    text = 'Original output exceeded 64kb limit. '
-         + 'Abbreviated version follows:\n\n'
-         + text.substring(0, 63 * 1024)
+    summary = 'Original output exceeded 64kb limit. '
+            + 'Abbreviated version follows.'
+    text = text.substring(0, 63 * 1024)
   }
 
   await doUpdateCheck(checkId, conclusion, title, summary, text)

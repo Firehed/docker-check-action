@@ -32,7 +32,15 @@ async function run(): Promise<void> {
   } catch (error) {
     core.setFailed(error)
     // Mark the check as neutral
-    doUpdateCheck(checkId, 'neutral', 'Check update errored', error.message)
+    doUpdateCheck(
+      checkId,
+      'neutral',
+      'Check update errored',
+      'An error occurred when trying to update the check. '
+      + `The command exited with code ${result.exitCode}. `
+      + 'Check the original workflow for more details.',
+      error.message,
+    )
   }
 }
 

@@ -18,6 +18,7 @@ jobs:
         run: mkdir coverage
 
       - uses: ./
+        name: Self-test
         with:
           name: 'Write into mounted directory with this action'
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -26,6 +27,17 @@ jobs:
             --volume ${{ github.workspace }}/coverage:/coverage
             --volume ${{ github.workspace }}/examples/write:/write
           command: ./write
+
+      - uses: ./
+        name: Overload stdout
+        with:
+          name: Overload stdout
+          token: ${{ secrets.GITHUB_TOKEN }}
+          image: alpine:3.13
+          options:
+            --volume ${{ github.workspace }}/examples/overload:/overload
+          command: ./overload
+
 
       # - uses: ./
       #   continue-on-error: true

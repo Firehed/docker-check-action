@@ -11,15 +11,36 @@ interface ExecResult {
 }
 
 async function run(): Promise<void> {
-  const checkId = await createCheck()
-  core.debug(`Check ID ${checkId}`)
+  let checkId: number
+  try {
+    checkId = await createCheck()
+    core.debug(`Check ID ${checkId}`)
+  } catch (error) {
+    core.error("Creating check failed")
+    core.setFailed(error)
+    return
+  }
 
   const result = await runCheckDockerCommand()
 
-  await updateCheck(checkId, result)
+  try {
+    await updateCheck(checkId, result)
 
-  if (result.exitCode > 0) {
-    core.setFailed('Docker check command exited non-zero. See check for details.')
+    if (result.exitCode > 0) {
+      core.setFailed('Docker check command exited non-zero. See check for details.')
+    }
+  } catch (error) {
+    core.setFailed(error)
+    // Mark the check as neutral
+    doUpdateCheck(
+      checkId,
+      'neutral',
+      'Check update errored',
+      'An error occurred when trying to update the check. '
+      + `The command exited with code ${result.exitCode}. `
+      + 'Check the original workflow for more details.',
+      error.message,
+    )
   }
 }
 
@@ -54,21 +75,31 @@ async function updateCheck(checkId: number, result: ExecResult): Promise<void> {
 
   const conclusion: Conclusion = result.exitCode > 0 ? 'failure' : 'success'
 
-  // https://docs.github.com/en/rest/reference/checks#update-a-check-run
-  core.debug(`Updating check ${checkId} to ${conclusion}`)
-  const token = core.getInput('token')
-  const ok = github.getOctokit(token)
-
   const title = result.exitCode > 0
     ? `Failed with exit code ${result.exitCode}`
     : 'Succeeded'
 
-  const summary = ''// Reserve for future
-  const text = "# Command output"
+  let summary = ''
+  let text = "# Command output"
    + "\n\n## stdout"
    + "\n```" + `\n${result.stdout}\n` + '```'
    + "\n\n## stderr"
    + "\n```" + `\n${result.stderr}\n` + '```'
+
+  if (text.length > 65535) {
+    summary = 'Original output exceeded 64kb limit. '
+            + 'Abbreviated version follows.'
+    text = text.substring(0, 63 * 1024)
+  }
+
+  await doUpdateCheck(checkId, conclusion, title, summary, text)
+}
+
+async function doUpdateCheck(checkId: number, conclusion: Conclusion, title: string, summary: string, text?: string): Promise<void> {
+  // https://docs.github.com/en/rest/reference/checks#update-a-check-run
+  core.debug(`Updating check ${checkId} to ${conclusion}`)
+  const token = core.getInput('token')
+  const ok = github.getOctokit(token)
 
   const updateParams = {
     owner: github.context.repo.owner,

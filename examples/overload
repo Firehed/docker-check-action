@@ -1,0 +1,14 @@
+#!/bin/sh
+# The purpose of this is to generate >64kb of output to stdout, which exceeds the limit of what a Github Check will hold
+i=1000
+while [ $i -ge 0 ]
+do
+    j=10
+    while [ $j -ge 0 ]
+    do
+        echo -n "123456789 "
+        j=$((j-1))
+    done
+    echo ''
+    i=$((i-1))
+done

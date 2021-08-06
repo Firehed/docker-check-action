@@ -11,12 +11,19 @@ interface ExecResult {
 }
 
 async function run(): Promise<void> {
+  let checkId: number
   try {
-    const checkId = await createCheck()
+    checkId = await createCheck()
     core.debug(`Check ID ${checkId}`)
+  } catch (error) {
+    core.error("Creating check failed")
+    core.setFailed(error)
+    return
+  }
 
-    const result = await runCheckDockerCommand()
+  const result = await runCheckDockerCommand()
 
+  try {
     await updateCheck(checkId, result)
 
     if (result.exitCode > 0) {
@@ -24,6 +31,8 @@ async function run(): Promise<void> {
     }
   } catch (error) {
     core.setFailed(error)
+    // Mark the check as neutral
+    doUpdateCheck(checkId, 'neutral', 'Check update errored', error.message)
   }
 }
 
@@ -58,11 +67,6 @@ async function updateCheck(checkId: number, result: ExecResult): Promise<void> {
 
   const conclusion: Conclusion = result.exitCode > 0 ? 'failure' : 'success'
 
-  // https://docs.github.com/en/rest/reference/checks#update-a-check-run
-  core.debug(`Updating check ${checkId} to ${conclusion}`)
-  const token = core.getInput('token')
-  const ok = github.getOctokit(token)
-
   const title = result.exitCode > 0
     ? `Failed with exit code ${result.exitCode}`
     : 'Succeeded'
@@ -73,6 +77,15 @@ async function updateCheck(checkId: number, result: ExecResult): Promise<void> {
    + "\n```" + `\n${result.stdout}\n` + '```'
    + "\n\n## stderr"
    + "\n```" + `\n${result.stderr}\n` + '```'
+
+  await doUpdateCheck(checkId, conclusion, title, summary, text)
+}
+
+async function doUpdateCheck(checkId: number, conclusion: Conclusion, title: string, summary: string, text?: string): Promise<void> {
+  // https://docs.github.com/en/rest/reference/checks#update-a-check-run
+  core.debug(`Updating check ${checkId} to ${conclusion}`)
+  const token = core.getInput('token')
+  const ok = github.getOctokit(token)
 
   const updateParams = {
     owner: github.context.repo.owner,

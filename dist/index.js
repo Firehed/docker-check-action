@@ -7663,11 +7663,16 @@ async function updateCheck(checkId, result) {
         ? `Failed with exit code ${result.exitCode}`
         : 'Succeeded';
     const summary = ''; // Reserve for future
-    const text = "# Command output"
+    let text = "# Command output"
         + "\n\n## stdout"
         + "\n```" + `\n${result.stdout}\n` + '```'
         + "\n\n## stderr"
         + "\n```" + `\n${result.stderr}\n` + '```';
+    if (text.length > 65535) {
+        text = 'Original output exceeded 64kb limit. '
+            + 'Abbreviated version follows:\n\n'
+            + text.substring(0, 63 * 1024);
+    }
     await doUpdateCheck(checkId, conclusion, title, summary, text);
 }
 async function doUpdateCheck(checkId, conclusion, title, summary, text) {

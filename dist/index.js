@@ -7617,12 +7617,17 @@ function getFullCommitHash() {
 
 
 async function run() {
-    const checkId = await createCheck();
-    core.debug(`Check ID ${checkId}`);
-    const result = await runCheckDockerCommand();
-    await updateCheck(checkId, result);
-    if (result.exitCode > 0) {
-        core.setFailed('Docker check command exited non-zero. See check for details.');
+    try {
+        const checkId = await createCheck();
+        core.debug(`Check ID ${checkId}`);
+        const result = await runCheckDockerCommand();
+        await updateCheck(checkId, result);
+        if (result.exitCode > 0) {
+            core.setFailed('Docker check command exited non-zero. See check for details.');
+        }
+    }
+    catch (error) {
+        core.setFailed(error);
     }
 }
 async function createCheck() {

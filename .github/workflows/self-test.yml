@@ -44,7 +44,7 @@ jobs:
           name: 'Force fail'
           token: ${{ secrets.GITHUB_TOKEN }}
           image: alpine:3.13
-          command: echo ::error file=src/index.ts,line=13,col=0::This output comes from the check
+          command: echo ::error file=src/index.ts,line=14,col=0::This output comes from the check
 
       - name: Check docker step ran
         run: |

@@ -17,7 +17,6 @@ The main use-case is pairing with the above `docker-multistage-build` to perform
 
 ### Example
 
-
 ```yaml
 name: "Self-test: Docker check"
 
@@ -54,6 +53,19 @@ jobs:
             --env-file .env
             --volume ${{ github.workspace }}/coverage:/coverage"
 ```
+
+### Using with Dependabot
+
+By default, Dependabot will run Actions with read-only permissions on private repositories (note: this applies to _any_ external user, not just Dependabot).
+This means that since this action uses the Checks API to create and update statuses, the API calls will fail and the action will not complete.
+To resolve this, ensure that in your workflow file, `permissions.checks` is set to `write`.
+This can be done at the top level or within a job.
+Be aware that configuring any permission results in all non-specified APIs being set to `none`, which will probably not work.
+At minimum, you will also want `permissions.contents` set to `read` (so the repo can be checked out by the workflow); other values may need adjusting based on the contents of your workflow.
+See the [official documentation](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#permissions) for additional information.
+
+Note: there may be additional configuration requirements for organization-owned private repositories.
+Still researching this...
 
 ### Known issues
 

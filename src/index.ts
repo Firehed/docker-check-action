@@ -15,9 +15,9 @@ async function run(): Promise<void> {
   try {
     checkId = await createCheck()
     core.debug(`Check ID ${checkId}`)
-  } catch (error) {
+  } catch (error: unknown) {
     core.error("Creating check failed")
-    core.setFailed(error)
+    core.setFailed(error instanceof Error ? error : String(error))
     return
   }
 
@@ -29,8 +29,8 @@ async function run(): Promise<void> {
     if (result.exitCode > 0) {
       core.setFailed('Docker check command exited non-zero. See check for details.')
     }
-  } catch (error) {
-    core.setFailed(error)
+  } catch (error: unknown) {
+    core.setFailed(error instanceof Error ? error : String(error))
     // Mark the check as neutral
     doUpdateCheck(
       checkId,
@@ -39,7 +39,7 @@ async function run(): Promise<void> {
       'An error occurred when trying to update the check. '
       + `The command exited with code ${result.exitCode}. `
       + 'Check the original workflow for more details.',
-      error.message,
+      error instanceof Error ? error.message : String(error),
     )
   }
 }

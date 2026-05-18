@@ -38,14 +38,13 @@ jobs:
             --volume ${{ github.workspace }}/examples/overload:/overload
           command: ./overload
 
-
-      # - uses: ./
-      #   continue-on-error: true
-      #   with:
-      #     name: 'Force fail'
-      #     token: ${{ secrets.GITHUB_TOKEN }}
-      #     image: alpine:3.13
-      #     command: non-existing-command
+      - uses: ./
+        continue-on-error: true
+        with:
+          name: 'Force fail'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          image: alpine:3.13
+          command: echo ::error file=src/index.ts,line=14,col=0::This output comes from the check
 
       - name: Check docker step ran
         run: |

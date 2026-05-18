@@ -11,6 +11,7 @@ interface ExecResult {
 }
 
 async function run(): Promise<void> {
+  // ignore me
   let checkId: number
   try {
     checkId = await createCheck()
